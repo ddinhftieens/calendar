@@ -64,10 +64,10 @@ export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
         </div>
 
         <div className="canchi-bar">
-          <span>Năm {yearCanChi(lunar.year)}</span>
-          <span>Tháng {monthCanChi(lunar.month, lunar.year)}</span>
-          <span>Ngày {dayCanChi(lunar.jd)}</span>
-          <span>Tiết {tietKhi(lunar.jd)}</span>
+          <div className="canchi-item"><small>Năm</small><strong>{yearCanChi(lunar.year)}</strong></div>
+          <div className="canchi-item"><small>Tháng</small><strong>{monthCanChi(lunar.month, lunar.year)}</strong></div>
+          <div className="canchi-item"><small>Ngày</small><strong>{dayCanChi(lunar.jd)}</strong></div>
+          <div className="canchi-item"><small>Tiết khí</small><strong>{tietKhi(lunar.jd)}</strong></div>
         </div>
       </section>
 
