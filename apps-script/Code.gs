@@ -135,22 +135,46 @@ function sendReminders() {
     const dateStr = Utilities.formatDate(occ, TZ_NAME, 'dd/MM/yyyy') + (ev.time ? ' lúc ' + ev.time : '');
     const lunarStr = ev.calendar === 'lunar' ? ' (âm lịch ' + ev.day + '/' + ev.month + ')' : '';
     (groups[ev.notifyEmail] = groups[ev.notifyEmail] || []).push({
-      diff, html: '<li><b>' + ev.title + '</b> - ' + typeName(ev.typeId) + '<br>' + dateStr + lunarStr +
-        ' — <b style="color:#7c3aed">' + when + '</b>' + (ev.note ? '<br><i>' + ev.note + '</i>' : '') + '</li>',
+      diff, html: '<li><b>' + esc_(ev.title) + '</b> - ' + esc_(typeName(ev.typeId)) + '<br>' + dateStr + esc_(lunarStr) +
+        ' — <b style="color:#7c3aed">' + when + '</b>' + (ev.note ? '<br><i>' + esc_(ev.note) + '</i>' : '') + '</li>',
+      logRow: [todayKey, ev.id, diff, ev.notifyEmail],
     });
-    log.appendRow([todayKey, ev.id, diff, ev.notifyEmail]);
   });
 
+  const logRows = [];
   Object.keys(groups).forEach(email => {
     const items = groups[email].sort((a, b) => a.diff - b.diff);
     const hasToday = items.some(i => i.diff === 0);
-    MailApp.sendEmail({
-      to: email,
-      subject: (hasToday ? 'Hôm nay có sự kiện' : 'Sự kiện sắp diễn ra') + ' - Lịch Sự Kiện',
-      htmlBody: '<div style="font-family:Arial,sans-serif"><h2 style="color:#7c3aed">Lịch Sự Kiện nhắc bạn</h2><ul>' +
-        items.map(i => i.html).join('') + '</ul></div>',
-    });
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: (hasToday ? 'Hôm nay có sự kiện' : 'Sự kiện sắp diễn ra') + ' - Lịch Sự Kiện',
+        htmlBody: '<div style="font-family:Arial,sans-serif"><h2 style="color:#7c3aed">Lịch Sự Kiện nhắc bạn</h2><ul>' +
+          items.map(i => i.html).join('') + '</ul></div>',
+      });
+      items.forEach(i => logRows.push(i.logRow)); // chỉ ghi log khi gửi thành công
+    } catch (err) { console.error(email + ': ' + err); }
   });
+  if (logRows.length) log.getRange(log.getLastRow() + 1, 1, logRows.length, 4).setValues(logRows);
+  pruneLog_(log, todayKey);
+}
+
+function esc_(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Xóa log cũ (giữ log hôm nay) để sheet không phình to vô hạn */
+function pruneLog_(log, todayKey) {
+  const last = log.getLastRow();
+  if (last <= 500) return;
+  const vals = log.getRange(2, 1, last - 1, 1).getValues();
+  let del = 0;
+  while (del < vals.length) {
+    const d = vals[del][0] instanceof Date ? Utilities.formatDate(vals[del][0], TZ_NAME, 'yyyy-MM-dd') : String(vals[del][0]);
+    if (d >= todayKey) break;
+    del++;
+  }
+  if (del > 0) log.deleteRows(2, del);
 }
 
 function nextOccurrence_(ev, today) {

@@ -62,18 +62,35 @@ function sunLongitude(jdn: number): number {
   return L;
 }
 
-const getNewMoonDay = (k: number) => INT(newMoon(k) + 0.5 + TZ / 24);
+// Cache theo k: mỗi tháng âm chỉ tính 1 lần (tránh tính lại hàng chục nghìn lần khi vẽ lưới lịch)
+const newMoonCache = new Map<number, number>();
+function getNewMoonDay(k: number): number {
+  let v = newMoonCache.get(k);
+  if (v === undefined) {
+    v = INT(newMoon(k) + 0.5 + TZ / 24);
+    if (newMoonCache.size > 5000) newMoonCache.clear(); // giới hạn bộ nhớ
+    newMoonCache.set(k, v);
+  }
+  return v;
+}
 const getSunLongitude = (d: number) => INT((sunLongitude(d - 0.5 - TZ / 24) / PI) * 6);
 
+const m11Cache = new Map<number, number>();
 function getLunarMonth11(yy: number): number {
+  const hit = m11Cache.get(yy);
+  if (hit !== undefined) return hit;
   const off = jdFromDate(31, 12, yy) - 2415021;
   const k = INT(off / 29.530588853);
   let nm = getNewMoonDay(k);
   if (getSunLongitude(nm) >= 9) nm = getNewMoonDay(k - 1);
+  m11Cache.set(yy, nm);
   return nm;
 }
 
+const leapCache = new Map<number, number>();
 function getLeapMonthOffset(a11: number): number {
+  const hit = leapCache.get(a11);
+  if (hit !== undefined) return hit;
   const k = INT((a11 - 2415021.076998695) / 29.530588853 + 0.5);
   let last: number, i = 1;
   let arc = getSunLongitude(getNewMoonDay(k + i));
@@ -82,6 +99,7 @@ function getLeapMonthOffset(a11: number): number {
     i++;
     arc = getSunLongitude(getNewMoonDay(k + i));
   } while (arc !== last && i < 14);
+  leapCache.set(a11, i - 1);
   return i - 1;
 }
 

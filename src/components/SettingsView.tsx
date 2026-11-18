@@ -18,14 +18,6 @@ interface Props {
 export function SettingsView({ url, onUrl, types, onTypes, onPull, onPushAll, syncError, toast, onConfirm }: Props) {
   const [draft, setDraft] = useState(url);
   const [email, setEmail] = useState(local.getEmail());
-  const [perm, setPerm] = useState(typeof Notification !== 'undefined' ? Notification.permission : 'unsupported');
-
-  const askPerm = async () => {
-    if (typeof Notification === 'undefined') return toast('Trình duyệt không hỗ trợ');
-    const p = await Notification.requestPermission();
-    setPerm(p);
-    if (p === 'granted') new Notification('Lịch sự kiện', { body: 'Đã bật thông báo!' });
-  };
 
   const testMail = async () => {
     if (!url || !email) return toast('Cần nhập URL và email');
@@ -62,15 +54,12 @@ export function SettingsView({ url, onUrl, types, onTypes, onPull, onPushAll, sy
       </section>
 
       <section className="card">
-        <h3>Cảnh báo</h3>
+        <h3>Nhắc nhở qua Email</h3>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email nhận nhắc nhở" />
         <div className="row">
           <button className="ghost-btn grow" onClick={() => { local.setEmail(email); toast('Đã lưu email'); }}>Lưu email</button>
           <button className="ghost-btn grow" onClick={testMail}>Gửi thử</button>
         </div>
-        <button className="ghost-btn" onClick={askPerm} disabled={perm === 'granted'}>
-          {perm === 'granted' ? 'Đã bật thông báo trình duyệt' : perm === 'denied' ? 'Thông báo đang bị chặn' : 'Bật thông báo trình duyệt'}
-        </button>
       </section>
 
       <section className="card">

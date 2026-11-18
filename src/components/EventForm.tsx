@@ -65,6 +65,7 @@ export function EventForm({ initial, types, onTypes, onSave, onDelete, onClose, 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ev.title.trim()) return alert('Vui lòng nhập tên sự kiện');
+    if (!Number.isFinite(ev.year) || ev.year < 1900 || ev.year > 2200) return alert('Năm không hợp lệ (1900–2200)');
     onConfirm({
       title: isEdit ? 'Lưu thay đổi' : 'Tạo sự kiện',
       message: isEdit ? 'Xác nhận lưu thay đổi sự kiện này?' : 'Xác nhận tạo sự kiện mới?',

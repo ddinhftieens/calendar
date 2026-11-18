@@ -13,13 +13,19 @@ interface Props {
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), ms);
-    return () => clearInterval(id);
+    let id: ReturnType<typeof setInterval> | undefined;
+    const start = () => { if (id === undefined) id = setInterval(() => setNow(new Date()), ms); };
+    const stop = () => { if (id !== undefined) { clearInterval(id); id = undefined; } };
+    const onVis = () => { if (document.hidden) stop(); else { setNow(new Date()); start(); } };
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVis);
+    return () => { stop(); document.removeEventListener('visibilitychange', onVis); };
   }, [ms]);
   return now;
 }
 
 export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
+  // Tick theo giây chỉ để đồng hồ/đếm ngược; danh sách tính lại theo ngày (dayKey)
   const now = useNow();
   const dayKey = now.toDateString();
   const lunar = useMemo(() => solarToLunar(now.getDate(), now.getMonth() + 1, now.getFullYear()), [dayKey]);
@@ -30,6 +36,7 @@ export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
     .sort((a, b) => a.occ.getTime() - b.occ.getTime()), [events, dayKey]);
 
   const hero = upcoming[0];
+  const rest = useMemo(() => upcoming.slice(1, 20), [upcoming]);
 
   return (
     <div className="home">
@@ -77,7 +84,7 @@ export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
         <section>
           <h2 className="section-title">Sắp diễn ra</h2>
           <div className="upcoming-list">
-            {upcoming.slice(1, 20).map(({ ev, occ }) => (
+            {rest.map(({ ev, occ }) => (
               <UpcomingItem key={ev.id} ev={ev} occ={occ} now={now} type={typeMap[ev.typeId]} onClick={() => onOpen(ev)} />
             ))}
           </div>

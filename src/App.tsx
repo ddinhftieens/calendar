@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CalEvent, EventType } from './lib/events';
-import { local, sheet } from './lib/storage';
+import { local, sheet, mergeEvents } from './lib/storage';
 import { HomeView } from './components/HomeView';
 import { CalendarView } from './components/CalendarView';
 import { EventList } from './components/EventList';
 import { EventForm } from './components/EventForm';
 import { SettingsView } from './components/SettingsView';
 import { ConfirmDialog, type ConfirmState } from './components/ConfirmDialog';
-import { useBrowserReminders } from './lib/notify';
 
 type Tab = 'home' | 'calendar' | 'events' | 'settings';
 type SyncState = 'local' | 'syncing' | 'ok' | 'error';
@@ -31,34 +30,54 @@ export function App() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  // Khóa scroll nền khi mở modal trên iOS/Android
+  // Khóa scroll nền khi mở modal (iOS Safari cần position: fixed)
   useEffect(() => {
-    if (editing) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
+    if (!editing) return;
+    const y = window.scrollY;
+    const b = document.body.style;
+    b.overflow = 'hidden'; b.position = 'fixed'; b.top = `-${y}px`; b.width = '100%';
+    return () => {
+      b.overflow = ''; b.position = ''; b.top = ''; b.width = '';
+      window.scrollTo(0, y);
+    };
   }, [editing]);
 
-  useBrowserReminders(events, types);
-
+  const pullSeq = useRef(0);
+  const lastPull = useRef(0);
   const pull = useCallback(async () => {
     if (!url) { setSync('local'); return; }
+    const seq = ++pullSeq.current;
     setSync('syncing');
     try {
       const data = await sheet.list(url);
-      setEvents(data.events);
+      if (seq !== pullSeq.current) return; // bỏ kết quả cũ nếu có lần pull mới hơn
+      lastPull.current = Date.now();
+      setEvents(cur => mergeEvents(cur, data.events));
       if (data.types?.length) setTypes(data.types);
       setSync('ok');
       setSyncError('');
     } catch (e) {
+      if (seq !== pullSeq.current) return;
       setSync('error');
       setSyncError(String(e));
     }
   }, [url]);
 
   useEffect(() => { pull(); }, [pull]);
+
+  // Quay lại từ nền / có mạng lại: đồng bộ (tối đa 1 lần / 60s)
+  useEffect(() => {
+    const refresh = () => {
+      if (document.hidden || !navigator.onLine) return;
+      if (Date.now() - lastPull.current > 60000) pull();
+    };
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('online', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('online', refresh);
+    };
+  }, [pull]);
 
   const remote = async (fn: () => Promise<unknown>) => {
     if (!url) return;
@@ -102,7 +121,10 @@ export function App() {
   const pushAll = async () => {
     await remote(async () => {
       await sheet.saveTypes(url, types);
-      for (const ev of events) await sheet.saveEvent(url, ev);
+      // Gửi theo lô nhỏ để nhanh hơn nhưng không quá tải mạng di động
+      for (let i = 0; i < events.length; i += 3) {
+        await Promise.all(events.slice(i, i + 3).map(ev => sheet.saveEvent(url, ev)));
+      }
     });
     setToast('Đã đẩy toàn bộ dữ liệu lên Sheet');
   };

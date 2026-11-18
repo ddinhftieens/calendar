@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
 import { occursOn } from '../lib/events';
 import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao } from '../lib/lunar';
@@ -48,7 +48,7 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
   const move = (n: number) => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + n, 1));
   const goToday = () => { setCursor(new Date(today.getFullYear(), today.getMonth(), 1)); setSelected(today); };
 
-  const [touchX, setTouchX] = useState<number | null>(null);
+  const touchX = useRef<number | null>(null);
 
   return (
     <div className="calendar">
@@ -65,12 +65,12 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
       </div>
 
       <div className="cal-grid"
-        onTouchStart={e => setTouchX(e.touches[0].clientX)}
+        onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
         onTouchEnd={e => {
-          if (touchX === null) return;
-          const dx = e.changedTouches[0].clientX - touchX;
+          if (touchX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
           if (Math.abs(dx) > 60) move(dx < 0 ? 1 : -1);
-          setTouchX(null);
+          touchX.current = null;
         }}>
         {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(w => <div key={w} className={`cal-wd ${w === 'CN' ? 'sun' : ''}`}>{w}</div>)}
         {cells.map(({ d, l, evs, holiday }) => {
