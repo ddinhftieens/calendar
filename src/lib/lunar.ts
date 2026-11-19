@@ -168,6 +168,14 @@ export function lunarMonthLength(lm: number, ly: number, leap: boolean): number 
 const CAN = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
 const CHI = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
 
+const ZODIAC_FILES = [
+  '01-ty.jpg', '02-suu.png', '03-dan.png', '04-mao.png',
+  '05-thin.jpg', '06-ty.png', '07-ngo.png', '08-mui.png',
+  '09-than.jpg', '10-dau.png', '11-tuat.png', '12-pig.png',
+];
+export const yearZodiacImage = (y: number) => `${import.meta.env.BASE_URL}zodiac/${ZODIAC_FILES[(y + 8) % 12]}`;
+export const dayZodiacImage = (jd: number) => `${import.meta.env.BASE_URL}zodiac/${ZODIAC_FILES[(jd + 1) % 12]}`;
+
 export const yearCanChi = (y: number) => `${CAN[(y + 6) % 10]} ${CHI[(y + 8) % 12]}`;
 export const dayCanChi = (jd: number) => `${CAN[(jd + 9) % 10]} ${CHI[(jd + 1) % 12]}`;
 export const monthCanChi = (m: number, y: number) => `${CAN[(y * 12 + m + 3) % 10]} ${CHI[(m + 1) % 12]}`;

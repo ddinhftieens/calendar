@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
 import { occursOn } from '../lib/events';
-import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao } from '../lib/lunar';
+import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao, dayZodiacImage } from '../lib/lunar';
 
 interface Props {
   events: CalEvent[];
@@ -64,31 +64,34 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
         </div>
       </div>
 
-      <div className="cal-grid"
-        onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
-        onTouchEnd={e => {
-          if (touchX.current === null) return;
-          const dx = e.changedTouches[0].clientX - touchX.current;
-          if (Math.abs(dx) > 60) move(dx < 0 ? 1 : -1);
-          touchX.current = null;
-        }}>
-        {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(w => <div key={w} className={`cal-wd ${w === 'CN' ? 'sun' : ''}`}>{w}</div>)}
-        {cells.map(({ d, l, evs, holiday }) => {
-          const out = d.getMonth() !== cursor.getMonth();
-          const cls = ['cal-cell', out && 'out', sameDay(d, today) && 'today', sameDay(d, selected) && 'selected',
-            d.getDay() === 0 && 'sun', holiday && 'holiday'].filter(Boolean).join(' ');
-          return (
-            <button key={d.toISOString()} className={cls} onClick={() => setSelected(d)}>
-              <span className="sd">{d.getDate()}</span>
-              <span className={`ld ${l.day === 1 || l.day === 15 ? 'mark' : ''}`}>{l.day === 1 ? `${l.day}/${l.month}` : l.day}</span>
-              {evs.length > 0 && (
-                <span className="dots">
-                  {evs.slice(0, 3).map(ev => <i key={ev.id} style={{ background: typeMap[ev.typeId]?.color ?? '#0284c7' }} />)}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="cal-grid-wrapper">
+        <div className="cal-grid-bg" style={{ backgroundImage: `url(${dayZodiacImage(sel.l.jd)})` }} aria-hidden="true" />
+        <div className="cal-grid"
+          onTouchStart={e => { touchX.current = e.touches[0].clientX; }}
+          onTouchEnd={e => {
+            if (touchX.current === null) return;
+            const dx = e.changedTouches[0].clientX - touchX.current;
+            if (Math.abs(dx) > 60) move(dx < 0 ? 1 : -1);
+            touchX.current = null;
+          }}>
+          {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(w => <div key={w} className={`cal-wd ${w === 'CN' ? 'sun' : ''}`}>{w}</div>)}
+          {cells.map(({ d, l, evs, holiday }) => {
+            const out = d.getMonth() !== cursor.getMonth();
+            const cls = ['cal-cell', out && 'out', sameDay(d, today) && 'today', sameDay(d, selected) && 'selected',
+              d.getDay() === 0 && 'sun', holiday && 'holiday'].filter(Boolean).join(' ');
+            return (
+              <button key={d.toISOString()} className={cls} onClick={() => setSelected(d)}>
+                <span className="sd">{d.getDate()}</span>
+                <span className={`ld ${l.day === 1 || l.day === 15 ? 'mark' : ''}`}>{l.day === 1 ? `${l.day}/${l.month}` : l.day}</span>
+                {evs.length > 0 && (
+                  <span className="dots">
+                    {evs.slice(0, 3).map(ev => <i key={ev.id} style={{ background: typeMap[ev.typeId]?.color ?? '#0284c7' }} />)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <section className="day-detail">

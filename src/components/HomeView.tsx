@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
-import { nextOccurrence, daysBetween, fmtDate, WEEKDAYS, anniversaryCount, pad } from '../lib/events';
+import { nextOccurrence, daysBetween, fmtDate, WEEKDAYS, pad } from '../lib/events';
 import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi } from '../lib/lunar';
 
 interface Props {
@@ -100,10 +100,8 @@ function splitTime(ms: number) {
 }
 
 function eventSub(ev: CalEvent, occ: Date) {
-  const n = anniversaryCount(ev, occ);
   const lunar = ev.calendar === 'lunar' ? ` • ÂL ${ev.day}/${ev.month}` : '';
-  const label = n && n > 0 ? ` • ${ev.typeId === 'gio' ? 'Giỗ lần' : 'Năm thứ'} ${n}` : '';
-  return `${WEEKDAYS[occ.getDay()]}, ${fmtDate(occ)}${lunar}${label}`;
+  return `${WEEKDAYS[occ.getDay()]}, ${fmtDate(occ)}${lunar}`;
 }
 
 function HeroCountdown({ ev, occ, now, type, onClick }: { ev: CalEvent; occ: Date; now: Date; type?: EventType; onClick: () => void }) {
