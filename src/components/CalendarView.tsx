@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
-import { occursOn } from '../lib/events';
+import { occursOn, WEEKDAYS, pad } from '../lib/events';
 import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao, dayZodiacImage } from '../lib/lunar';
 
 interface Props {
@@ -55,12 +55,12 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
       <div className="cal-head">
         <div className="cal-title">
           <b>Tháng {cursor.getMonth() + 1}, {cursor.getFullYear()}</b>
-          <small>Năm {yearCanChi(solarToLunar(15, cursor.getMonth() + 1, cursor.getFullYear()).year)}</small>
+          <small>ÂL {sel.l.day}/{sel.l.month}{sel.l.leap ? ' nhuận' : ''} • Năm {yearCanChi(sel.l.year)}</small>
         </div>
         <div className="cal-nav">
+          <button className="cal-nav-arrow" onClick={() => move(-1)} aria-label="Tháng trước">‹</button>
           <button className="today-btn" onClick={goToday}>Hôm nay</button>
-          <button className="icon-btn" onClick={() => move(-1)} aria-label="Tháng trước">‹</button>
-          <button className="icon-btn" onClick={() => move(1)} aria-label="Tháng sau">›</button>
+          <button className="cal-nav-arrow" onClick={() => move(1)} aria-label="Tháng sau">›</button>
         </div>
       </div>
 
@@ -80,7 +80,10 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
             const cls = ['cal-cell', out && 'out', sameDay(d, today) && 'today', sameDay(d, selected) && 'selected',
               d.getDay() === 0 && 'sun', holiday && 'holiday'].filter(Boolean).join(' ');
             return (
-              <button key={d.toISOString()} className={cls} onClick={() => setSelected(d)}>
+              <button key={d.toISOString()} className={cls} onClick={() => {
+                setSelected(d);
+                if (out) setCursor(new Date(d.getFullYear(), d.getMonth(), 1));
+              }}>
                 <span className="sd">{d.getDate()}</span>
                 <span className={`ld ${l.day === 1 || l.day === 15 ? 'mark' : ''}`}>{l.day === 1 ? `${l.day}/${l.month}` : l.day}</span>
                 {evs.length > 0 && (
@@ -95,6 +98,10 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
       </div>
 
       <section className="day-detail">
+        <div className="dd-head">
+          <div className="dd-solar">{WEEKDAYS[sel.d.getDay()]}, {pad(sel.d.getDate())}/{pad(sel.d.getMonth() + 1)}/{sel.d.getFullYear()}</div>
+          <div className="dd-lunar">ÂL {sel.l.day}/{sel.l.month}{sel.l.leap ? ' (nhuận)' : ''}</div>
+        </div>
         <div className="dd-meta">
           <div className="dd-meta-item">
             <small>Ngày</small>

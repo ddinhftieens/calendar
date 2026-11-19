@@ -142,8 +142,7 @@ export function App() {
             </svg>
           </span>
           <div>
-            <h1>Lịch sự kiện</h1>
-            <small>Ghi nhớ mọi khoảnh khắc</small>
+            <h1>Âm lịch</h1>
           </div>
         </div>
         <button className={`sync sync-${sync}`} onClick={pull} title={syncError || 'Đồng bộ'}>
