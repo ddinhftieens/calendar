@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
 import { nextOccurrence, daysBetween, fmtDate, WEEKDAYS, pad } from '../lib/events';
-import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi } from '../lib/lunar';
+import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, isHoangDao, upcomingGioHoangDao } from '../lib/lunar';
 
 interface Props {
   events: CalEvent[];
   typeMap: Record<string, EventType>;
   onOpen: (e: CalEvent) => void;
   onAdd: () => void;
+  onCalendar?: () => void;
 }
 
 export function useNow(ms = 1000) {
@@ -24,7 +25,7 @@ export function useNow(ms = 1000) {
   return now;
 }
 
-export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
+export function HomeView({ events, typeMap, onOpen, onAdd, onCalendar }: Props) {
   // Tick theo giây chỉ để đồng hồ/đếm ngược; danh sách tính lại theo ngày (dayKey)
   const now = useNow();
   const dayKey = now.toDateString();
@@ -46,7 +47,12 @@ export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
             <div className="weekday">{WEEKDAYS[now.getDay()]}</div>
             <div className="month-year">Tháng {now.getMonth() + 1}, {now.getFullYear()}</div>
           </div>
-          <div className="clock">{pad(now.getHours())}:{pad(now.getMinutes())}:{pad(now.getSeconds())}</div>
+          <div className="today-top-right">
+            <span className={`today-dao ${isHoangDao(lunar.month, lunar.jd) ? 'good' : 'bad'}`}>
+              {isHoangDao(lunar.month, lunar.jd) ? 'Hoàng đạo' : 'Hắc đạo'}
+            </span>
+            <div className="clock">{pad(now.getHours())}:{pad(now.getMinutes())}:{pad(now.getSeconds())}</div>
+          </div>
         </div>
 
         <div className="today-main">
@@ -68,6 +74,14 @@ export function HomeView({ events, typeMap, onOpen, onAdd }: Props) {
           <div className="canchi-item"><small>Tháng</small><strong>{monthCanChi(lunar.month, lunar.year)}</strong></div>
           <div className="canchi-item"><small>Ngày</small><strong>{dayCanChi(lunar.jd)}</strong></div>
           <div className="canchi-item"><small>Tiết khí</small><strong>{tietKhi(lunar.jd)}</strong></div>
+        </div>
+
+        <div className="today-hours">
+          <small>Giờ hoàng đạo:</small>
+          <span>{upcomingGioHoangDao(lunar.jd, now.getHours()).slice(0, 3).join(' • ') || 'Đã qua hết'}</span>
+          {onCalendar && (
+            <button className="today-more" onClick={onCalendar}>Xem lịch ›</button>
+          )}
         </div>
       </section>
 

@@ -197,6 +197,19 @@ export function gioHoangDao(jd: number): string[] {
   return res;
 }
 
+export function upcomingGioHoangDao(jd: number, hour: number): string[] {
+  const chiOfDay = (jd + 1) % 12;
+  const pattern = GIO_HD[chiOfDay % 6];
+  const res: string[] = [];
+  for (let i = 0; i < 12; i++) {
+    if (pattern[i] !== '1') continue;
+    const end = i * 2 + 1;
+    const activeOrFuture = i === 0 ? (hour < 1 || hour >= 23) : hour < end;
+    if (activeOrFuture) res.push(`${CHI[i]} (${(i * 2 + 23) % 24}-${end}h)`);
+  }
+  return res;
+}
+
 // Ngày Hoàng Đạo theo tháng âm (1..12) & Chi ngày
 const HD_DAYS = [
   [0, 1, 5, 7],   // Tháng 1, 7: Tý, Sửu, Tỵ, Mùi

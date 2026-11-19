@@ -152,7 +152,7 @@ export function App() {
       </header>
 
       <main className="content">
-        {tab === 'home' && <HomeView events={events} typeMap={typeMap} onOpen={setEditing} onAdd={() => openNew()} />}
+        {tab === 'home' && <HomeView events={events} typeMap={typeMap} onOpen={setEditing} onAdd={() => openNew()} onCalendar={() => setTab('calendar')} />}
         {tab === 'calendar' && <CalendarView events={events} typeMap={typeMap} onOpen={setEditing} onAdd={openNew} />}
         {tab === 'events' && <EventList events={events} typeMap={typeMap} onOpen={setEditing} />}
         {tab === 'settings' && (
