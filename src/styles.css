@@ -468,6 +468,27 @@ code { background: var(--bg); padding: 2px 6px; border-radius: 6px; font-size: 1
   font-weight: 800;
   color: var(--text);
 }
+.dd-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dd-dao {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.dd-dao.good {
+  color: #059669;
+  background: color-mix(in srgb, #10b981 14%, transparent);
+}
+.dd-dao.bad {
+  color: var(--muted);
+  background: var(--bg);
+}
 .dd-lunar {
   font-size: 12px;
   font-weight: 700;
@@ -484,6 +505,26 @@ code { background: var(--bg); padding: 2px 6px; border-radius: 6px; font-size: 1
 }
 .dd-meta-item small, .dd-hours small { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
 .dd-meta-item span { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.dd-xung {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  padding: 9px 12px;
+  border-radius: 12px;
+}
+.dd-xung small {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+.dd-xung span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+}
 .dd-hours { display: flex; flex-direction: column; gap: 6px; }
 .dd-hours-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .dd-hours-list span {

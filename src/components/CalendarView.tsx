@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { CalEvent, EventType } from '../lib/events';
 import { occursOn, WEEKDAYS, pad } from '../lib/events';
-import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao, dayZodiacImage } from '../lib/lunar';
+import { solarToLunar, yearCanChi, dayCanChi, monthCanChi, tietKhi, gioHoangDao, dayZodiacImage, isHoangDao, tuoiXung } from '../lib/lunar';
 
 interface Props {
   events: CalEvent[];
@@ -100,7 +100,12 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
       <section className="day-detail">
         <div className="dd-head">
           <div className="dd-solar">{WEEKDAYS[sel.d.getDay()]}, {pad(sel.d.getDate())}/{pad(sel.d.getMonth() + 1)}/{sel.d.getFullYear()}</div>
-          <div className="dd-lunar">ÂL {sel.l.day}/{sel.l.month}{sel.l.leap ? ' (nhuận)' : ''}</div>
+          <div className="dd-badges">
+            <span className={`dd-dao ${isHoangDao(sel.l.month, sel.l.jd) ? 'good' : 'bad'}`}>
+              {isHoangDao(sel.l.month, sel.l.jd) ? 'Hoàng đạo' : 'Hắc đạo'}
+            </span>
+            <span className="dd-lunar">ÂL {sel.l.day}/{sel.l.month}{sel.l.leap ? ' (nhuận)' : ''}</span>
+          </div>
         </div>
         <div className="dd-meta">
           <div className="dd-meta-item">
@@ -115,6 +120,11 @@ export function CalendarView({ events, typeMap, onOpen, onAdd }: Props) {
             <small>Tiết khí</small>
             <span>{tietKhi(sel.l.jd)}</span>
           </div>
+        </div>
+
+        <div className="dd-xung">
+          <small>Tuổi xung</small>
+          <span>Tuổi {tuoiXung(sel.l.jd)}</span>
         </div>
 
         <div className="dd-hours">

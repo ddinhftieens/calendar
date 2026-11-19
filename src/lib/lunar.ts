@@ -196,3 +196,18 @@ export function gioHoangDao(jd: number): string[] {
   }
   return res;
 }
+
+// Ngày Hoàng Đạo theo tháng âm (1..12) & Chi ngày
+const HD_DAYS = [
+  [0, 1, 5, 7],   // Tháng 1, 7: Tý, Sửu, Tỵ, Mùi
+  [2, 3, 7, 9],   // Tháng 2, 8: Dần, Mão, Mùi, Dậu
+  [4, 5, 9, 11],  // Tháng 3, 9: Thìn, Tỵ, Dậu, Hợi
+  [6, 7, 11, 1],  // Tháng 4, 10: Ngọ, Mùi, Hợi, Sửu
+  [8, 9, 1, 3],   // Tháng 5, 11: Thân, Dậu, Sửu, Mão
+  [10, 11, 3, 5], // Tháng 6, 12: Tuất, Hợi, Mão, Tỵ
+];
+export const isHoangDao = (lunarMonth: number, jd: number) =>
+  HD_DAYS[(lunarMonth - 1) % 6].includes((jd + 1) % 12);
+
+// Tuổi xung (Lục xung) theo Chi ngày
+export const tuoiXung = (jd: number) => CHI[((jd + 1) % 12 + 6) % 12];
